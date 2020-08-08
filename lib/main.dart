@@ -1,8 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:omarymap/landingPage.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
+
+Future<void> initialize() async {
+  await Parse().initialize('leakage-reporter', 'https://leakage-reporter.herokuapp.com/api', liveQueryUrl: 'ws://leakage-reporter.herokuapp.com/api');
+  await FlutterDownloader.initialize(
+      debug: true 
+  );
+}
 
 void main() {
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  initialize()
+      .then((value) => runApp(MyApp()))
+      .catchError((error){
+        print(error);
+        print('---------------------');
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -10,7 +25,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Leakage Reporter',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // This is the theme of your application.
@@ -32,4 +47,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

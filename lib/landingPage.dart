@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_downloader/flutter_downloader.dart';
 import 'package:omarymap/leakageListBody.dart';
 import 'package:omarymap/popUpButton.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong/latlong.dart';
 import 'package:nominatim_location_picker/nominatim_location_picker.dart';
+import 'package:parse_server_sdk/parse_server_sdk.dart';
+import 'package:toast/toast.dart';
 
 class LandingPage extends StatefulWidget {
   @override
@@ -14,7 +17,7 @@ class LandingPage extends StatefulWidget {
 class _LandingPageState extends State<LandingPage> {
   TextEditingController descriptionText = TextEditingController();
   TextEditingController fullNameText = TextEditingController();
-  bool loggedIn =true;
+  bool loggedIn = false;
   List<Marker> _markers;
   LatLng _point;
   TileLayerOptions customMapLayer = TileLayerOptions();
@@ -22,10 +25,46 @@ class _LandingPageState extends State<LandingPage> {
   double _lng;
   Position _currentPosition;
 
+  void onSubmit() {
+    Toast.show('Reporting Leakage...', context, duration: Toast.LENGTH_LONG);
+    var report = ParseObject('Report')
+      ..set('fullName', fullNameText.text)..set(
+          'description', descriptionText.text)..set('latitude', _lat)..set(
+          'longitude', _lng);
+
+    report.save().then((value) {
+      print(value.success);
+      Toast.show(
+        'Leakage reported successfully',
+        context,
+      );
+      descriptionText.clear();
+      fullNameText.clear();
+    }).catchError((error) {
+      Toast.show('Error Reporting Leakage', context,
+          duration: Toast.LENGTH_SHORT);
+    });
+  }
+
   @override
   void initState() {
-   _getCurrentLocation();
+    _getCurrentLocation();
     super.initState();
+  }
+
+  Future<void> onDownload() async {
+    ParseCloudFunction downloadFunction = ParseCloudFunction('generateReport');
+    ParseResponse result = await downloadFunction.execute();
+    if (result.success) {
+      print(result.result);
+
+      final taskId = await FlutterDownloader.enqueue(url: result.result.url,
+          savedDir: '/reports',
+          showNotification: true,
+          openFileFromNotification: true);
+    } else {
+      print(result.error);
+    }
   }
 
   @override
@@ -36,13 +75,19 @@ class _LandingPageState extends State<LandingPage> {
         title: Text("Water Leakage Reporting"),
         centerTitle: true,
         actions: [
-         PopButton(loggedIn)
+          PopButton(loggedIn, (value) {
+            setState(() {
+              loggedIn = value;
+            });
+          })
         ],
       ),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(left:8.0,right: 8.0),
-          child: loggedIn?LeakageList():ListView(
+          padding: const EdgeInsets.only(left: 8.0, right: 8.0),
+          child: loggedIn
+              ? LeakageList()
+              : ListView(
             shrinkWrap: true,
             children: [
               Center(
@@ -69,7 +114,10 @@ class _LandingPageState extends State<LandingPage> {
               Row(
                 children: [
                   Text("Full Name"),
-                  Text(" (optional)",style: TextStyle(color: Colors.grey),),
+                  Text(
+                    " (optional)",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ],
               ),
               Center(
@@ -89,13 +137,13 @@ class _LandingPageState extends State<LandingPage> {
                   FlatButton(
                     child: Text("Cancel"),
                     color: Colors.red,
-                    onPressed: (){},
+                    onPressed: () {},
                   ),
                   FlatButton(
                     child: Text("Submit"),
                     color: Colors.blue,
-                    onPressed: (){
-                      print(descriptionText.text);
+                    onPressed: () {
+                      onSubmit();
                     },
                   ),
                 ],
@@ -104,21 +152,21 @@ class _LandingPageState extends State<LandingPage> {
           ),
         ),
       ),
-      floatingActionButton: loggedIn?FloatingActionButton(
-        onPressed: (){
-          setState(() {
-            print("@@@@@@@@");
-           loggedIn=!loggedIn;
-          });
-
+      floatingActionButton: loggedIn
+          ? FloatingActionButton(
+        onPressed: () {
+          onDownload()
+              .then((_) => Toast.show('Report Downloaded', context));
         },
         child: Icon(Icons.file_download),
-      ):null,
+      )
+          : null,
     );
   }
 
   _getCurrentLocation() {
-    final Geolocator geolocator = Geolocator()..forceAndroidLocationManager;
+    final Geolocator geolocator = Geolocator()
+      ..forceAndroidLocationManager;
     geolocator
         .getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
         .then((Position position) {
@@ -130,6 +178,7 @@ class _LandingPageState extends State<LandingPage> {
       print(e);
     });
   }
+
   _getCurrentLocationMarker() {
     setState(() {
       _lat = _currentPosition.latitude;
@@ -139,7 +188,8 @@ class _LandingPageState extends State<LandingPage> {
         width: 80.0,
         height: 80.0,
         point: LatLng(_currentPosition.latitude, _currentPosition.longitude),
-        builder: (ctx) => new Container(
+        builder: (ctx) =>
+        new Container(
             child: Icon(
               Icons.location_on,
               size: 50.0,
@@ -147,6 +197,4 @@ class _LandingPageState extends State<LandingPage> {
       );
     });
   }
-
-
 }
