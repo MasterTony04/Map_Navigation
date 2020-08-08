@@ -11,6 +11,9 @@ PopButton(this.loggedIn);
 
 class PopButtonState extends State<PopButton> {
 
+  TextEditingController userName = TextEditingController();
+  TextEditingController password = TextEditingController();
+
 
   List<PopUp> signInPopUp = <PopUp>[
     const PopUp(title: Text('Sign In'), icon: Icon(Icons.input), id: 0),
@@ -62,12 +65,14 @@ class PopButtonState extends State<PopButton> {
               children: [
                 Text("Username"),
                 TextField(
+                  controller: userName,
                   decoration: InputDecoration(
                     border: OutlineInputBorder()
                   ),
                 ),
                 Text("Password"),
                 TextField(
+                  controller: password,
                   obscureText:true,
                   decoration: InputDecoration(
                       border: OutlineInputBorder()
