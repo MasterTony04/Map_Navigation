@@ -108,8 +108,7 @@ class _LandingPageState extends State<LandingPage> {
         onPressed: (){
           setState(() {
             print("@@@@@@@@");
-            print(_lat);
-            print(_lng);
+           loggedIn=!loggedIn;
           });
 
         },
@@ -126,8 +125,6 @@ class _LandingPageState extends State<LandingPage> {
       setState(() {
         _currentPosition = position;
         _getCurrentLocationMarker();
-        print("@@@@@@@@@@@");
-        print(_lat);
       });
     }).catchError((e) {
       print(e);
@@ -150,4 +147,6 @@ class _LandingPageState extends State<LandingPage> {
       );
     });
   }
+
+
 }

@@ -17,7 +17,7 @@ class PopButtonState extends State<PopButton> {
   ];
 
   List<PopUp> signOutPopUp = <PopUp>[
-    const PopUp(title: Text('Sign Out'), icon: Icon(Icons.input), id: 0),
+    const PopUp(title: Text('Sign Out'), icon: Icon(Icons.input), id: 1),
   ];
   @override
   Widget build(BuildContext context) {
@@ -46,9 +46,54 @@ class PopButtonState extends State<PopButton> {
         }).toList());
   }
 
+  void _loginDialog() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Login"),
+          content: Container(
+            height: 170,
+            width: MediaQuery.of(context).size.width*0.9,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Username"),
+                TextField(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder()
+                  ),
+                ),
+                Text("Password"),
+                TextField(
+                  obscureText:true,
+                  decoration: InputDecoration(
+                      border: OutlineInputBorder()
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+            new FlatButton(
+              child: new Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void selected(PopUp popUp) {
     if (popUp.id == 0) {
 //Navigator.push(context, MaterialPageRoute(builder: (_)=>OrderRecipientProfile()));
+    _loginDialog();
     }
     if (popUp.id == 1) {
 
